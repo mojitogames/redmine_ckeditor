@@ -17,6 +17,18 @@ module RedmineCkeditor::WikiFormatting
 
         var editor = CKEDITOR.replace(textarea, #{RedmineCkeditor.options(@project).to_json});
         editor.on("change", function() { textarea.value = editor.getSnapshot(); });
+	$(window).on("beforeunload",
+		function() {
+			if (editor.checkDirty()) {
+				return #{l(:text_warn_on_leaving_unsaved).inspect};
+			}
+		}
+	);
+	$(document).on("submit", "form",
+		function() {
+			editor.resetDirty();
+		}
+	);
       })();
       EOT
     end

@@ -36,11 +36,18 @@ CKEDITOR.plugins.add('plantuml',
 				editor.contextMenu.addListener(function (element) {
 					// Get to the closest <img> element that contains the selection.
 					// http://docs.cksource.com/ckeditor_api/symbols/CKEDITOR.dom.node.html#getAscendant
-					if (element)
-						element = element.getAscendant('img', true);
+
+					//if (element)
+					//	element = element.getAscendant('img', true);
+					// mojito modified
+					element = element.getChild(0);
+					// console.log(element);
+					// console.log(element.$.tagName);
+					// console.log(element.getAttribute('alt'));
 					// Return a context menu object in an enabled, but not active state.
 					// http://docs.cksource.com/ckeditor_api/symbols/CKEDITOR.html#.TRISTATE_OFF
-					if (element && !element.isReadOnly() && !element.data('cke-realelement'))
+					//if (element && !element.isReadOnly() && !element.data('cke-realelement'))
+					if( element && element.$.tagName == 'IMG' && element.getAttribute('alt').startsWith('(uml)'))
 						return { umlItem: CKEDITOR.TRISTATE_OFF };
 					// Return nothing if the conditions are not met.
 					return null;
@@ -79,6 +86,7 @@ CKEDITOR.plugins.add('plantuml',
 											id: 'plantuml',
 											validate: CKEDITOR.dialog.validate.notEmpty("PlantUML source cannot be empty"),
 											setup: function (element) {
+												//console.log(element);
 												var alt = element.getAttribute("alt");
 												if (alt != null) {
 													this.setValue(alt.substr(5));
@@ -86,9 +94,12 @@ CKEDITOR.plugins.add('plantuml',
 											},
 											commit: function (element) {
 												var u = compress(this.getValue());
-												u = "http://www.plantuml.com/plantuml/img/" + u;
+												u = "https://www.plantuml.com/plantuml/img/" + u;
 												element.setAttribute("alt", "(uml)" + this.getValue());
 												element.setAttribute("src", u);
+
+												// save with image2 plugin
+												element.setAttribute("data-cke-saved-src", u);
 											}
 										},
 									]
@@ -103,9 +114,12 @@ CKEDITOR.plugins.add('plantuml',
 							// http://docs.cksource.com/ckeditor_api/symbols/CKEDITOR.dom.selection.html#getStartElement
 							element = sel.getStartElement();
 
+
+						// mojito modified
 						// Get the <img> element closest to the selection.
-						if (element)
-							element = element.getAscendant('img', true);
+						//if (element)
+						//	element = element.getAscendant('img', true);
+							element = element.getChild(0);
 
 						// Create a new <img> element if it does not exist.
 						// http://docs.cksource.com/ckeditor_api/symbols/CKEDITOR.dom.document.html#createElement
@@ -148,7 +162,6 @@ CKEDITOR.plugins.add('plantuml',
 				var editor = ev.editor,
 					dataProcessor = editor.dataProcessor,
 					htmlFilter = dataProcessor && dataProcessor.htmlFilter;
-
 				htmlFilter.addRules({
 					elements: {
 						$: function (element) {
@@ -159,7 +172,7 @@ CKEDITOR.plugins.add('plantuml',
 
 								var imgalt = element.attributes.alt.substr(5);
 								var u = compress(imgalt);
-								u = "http://www.plantuml.com/plantuml/img/" + u;
+								u = "https://www.plantuml.com/plantuml/img/" + u;
 								element.attributes.src = u;
 								element.attributes['data-cke-saved-src'] = u;
 							}
